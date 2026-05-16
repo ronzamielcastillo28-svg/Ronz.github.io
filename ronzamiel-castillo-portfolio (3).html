@@ -1,0 +1,1291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ronzamiel Castillo — Virtual Assistant</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #F5F0E8;
+    --ink: #1A1612;
+    --warm-mid: #8C7B6B;
+    --accent: #C4874A;
+    --accent-light: #E8C99A;
+    --paper: #FAF7F2;
+    --rule: #D4C9B8;
+    --rule-faint: #EAE3D8;
+    --shadow: rgba(26,22,18,0.08);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--cream);
+    color: var(--ink);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* ── SCROLL PROGRESS ── */
+  #scroll-bar {
+    position: fixed;
+    top: 0; left: 0;
+    height: 2px;
+    width: 0%;
+    background: var(--accent);
+    z-index: 9999;
+    transition: width 0.1s linear;
+  }
+
+  /* ── GRAIN ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9998;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 200;
+    padding: 1.15rem 4rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(245,240,232,0.88);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--rule-faint);
+    transition: box-shadow 0.3s;
+  }
+
+  nav.scrolled {
+    box-shadow: 0 4px 24px var(--shadow);
+  }
+
+  .nav-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: var(--ink);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .nav-logo span {
+    display: inline-block;
+    width: 6px; height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    animation: pulse 2.2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.6); opacity: 0.6; }
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 2.5rem;
+    list-style: none;
+    align-items: center;
+  }
+
+  .nav-links a {
+    text-decoration: none;
+    color: var(--warm-mid);
+    font-size: 0.73rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    transition: color 0.2s;
+    position: relative;
+  }
+
+  .nav-links a::after {
+    content: '';
+    position: absolute;
+    bottom: -3px; left: 0;
+    width: 0; height: 1px;
+    background: var(--accent);
+    transition: width 0.25s ease;
+  }
+
+  .nav-links a:hover { color: var(--accent); }
+  .nav-links a:hover::after { width: 100%; }
+
+  .nav-links .nav-cta a {
+    background: var(--ink);
+    color: var(--cream);
+    padding: 0.5rem 1.25rem;
+    letter-spacing: 0.14em;
+    transition: background 0.2s;
+  }
+
+  .nav-links .nav-cta a::after { display: none; }
+  .nav-links .nav-cta a:hover { background: var(--accent); color: var(--cream); }
+
+  /* Hamburger */
+  .hamburger {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    cursor: pointer;
+    padding: 4px;
+    background: none;
+    border: none;
+  }
+
+  .hamburger span {
+    display: block;
+    width: 22px; height: 1.5px;
+    background: var(--ink);
+    transition: all 0.3s;
+    transform-origin: center;
+  }
+
+  .hamburger.open span:nth-child(1) { transform: translateY(6.5px) rotate(45deg); }
+  .hamburger.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+  .hamburger.open span:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); }
+
+  .mobile-menu {
+    display: none;
+    position: fixed;
+    top: 60px; left: 0; right: 0;
+    background: rgba(245,240,232,0.97);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--rule);
+    z-index: 199;
+    padding: 1.5rem 2rem 2rem;
+    flex-direction: column;
+    gap: 0;
+    transform: translateY(-10px);
+    opacity: 0;
+    transition: all 0.3s ease;
+  }
+
+  .mobile-menu.open {
+    display: flex;
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  .mobile-menu a {
+    text-decoration: none;
+    color: var(--warm-mid);
+    font-size: 0.78rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--rule-faint);
+    transition: color 0.2s;
+  }
+
+  .mobile-menu a:hover { color: var(--accent); }
+  .mobile-menu a:last-child { border-bottom: none; color: var(--accent); }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    padding: 8rem 4rem 4rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-bg-text {
+    position: absolute;
+    top: 50%;
+    right: -2rem;
+    transform: translateY(-50%);
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(6rem, 16vw, 18rem);
+    font-weight: 900;
+    color: transparent;
+    -webkit-text-stroke: 1px var(--rule);
+    line-height: 1;
+    pointer-events: none;
+    user-select: none;
+    letter-spacing: -0.04em;
+    will-change: transform;
+  }
+
+  /* Decorative corner lines */
+  .hero::after {
+    content: '';
+    position: absolute;
+    bottom: 3rem; left: 4rem;
+    width: 60px; height: 60px;
+    border-bottom: 1px solid var(--rule);
+    border-left: 1px solid var(--rule);
+    pointer-events: none;
+  }
+
+  .hero-left {
+    position: relative;
+    z-index: 2;
+  }
+
+  .hero-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    border: 1px solid var(--accent-light);
+    padding: 0.38rem 1rem 0.38rem 0.75rem;
+    border-radius: 2px;
+    margin-bottom: 2rem;
+    animation: fadeUp 0.8s ease both;
+  }
+
+  .hero-tag::before {
+    content: '';
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: #5CC97C;
+    animation: pulse 2s ease-in-out infinite;
+    flex-shrink: 0;
+  }
+
+  .hero-name {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(3rem, 5.5vw, 5.5rem);
+    font-weight: 900;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    animation: fadeUp 0.8s 0.1s ease both;
+  }
+
+  .hero-name em {
+    font-style: italic;
+    color: var(--accent);
+  }
+
+  .hero-title {
+    font-size: clamp(0.75rem, 1.1vw, 0.9rem);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--warm-mid);
+    margin-top: 1.2rem;
+    margin-bottom: 1.75rem;
+    animation: fadeUp 0.8s 0.2s ease both;
+  }
+
+  .hero-desc {
+    max-width: 40ch;
+    color: var(--warm-mid);
+    font-size: 1rem;
+    line-height: 1.85;
+    animation: fadeUp 0.8s 0.3s ease both;
+  }
+
+  .hero-stats {
+    display: flex;
+    gap: 2.5rem;
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--rule-faint);
+    animation: fadeUp 0.8s 0.35s ease both;
+  }
+
+  .stat-val {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1;
+  }
+
+  .stat-val em { color: var(--accent); font-style: normal; }
+
+  .stat-label {
+    font-size: 0.68rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--warm-mid);
+    margin-top: 0.3rem;
+  }
+
+  .hero-ctas {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2.5rem;
+    animation: fadeUp 0.8s 0.4s ease both;
+  }
+
+  .btn-primary {
+    background: var(--ink);
+    color: var(--cream);
+    padding: 0.9rem 2rem;
+    text-decoration: none;
+    font-size: 0.73rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    border: 1px solid var(--ink);
+    transition: all 0.25s;
+    display: inline-block;
+  }
+
+  .btn-primary:hover {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .btn-outline {
+    background: transparent;
+    color: var(--ink);
+    padding: 0.9rem 2rem;
+    text-decoration: none;
+    font-size: 0.73rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    border: 1px solid var(--rule);
+    transition: all 0.25s;
+    display: inline-block;
+  }
+
+  .btn-outline:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .hero-right {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+    animation: fadeIn 1s 0.5s ease both;
+  }
+
+  .hero-card {
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    padding: 2.5rem;
+    width: 340px;
+    position: relative;
+    box-shadow: 16px 16px 0 var(--rule-faint), 16px 16px 0 1px var(--rule);
+  }
+
+  .hero-card::before {
+    content: '';
+    position: absolute;
+    top: -10px; left: -10px;
+    width: 44px; height: 44px;
+    border-top: 2px solid var(--accent);
+    border-left: 2px solid var(--accent);
+  }
+
+  .hero-card::after {
+    content: '';
+    position: absolute;
+    bottom: -10px; right: -10px;
+    width: 44px; height: 44px;
+    border-bottom: 2px solid var(--accent);
+    border-right: 2px solid var(--accent);
+  }
+
+  .card-heading {
+    font-family: 'Playfair Display', serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--warm-mid);
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--rule-faint);
+  }
+
+  .contact-item {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--rule-faint);
+    font-size: 0.86rem;
+    color: var(--warm-mid);
+  }
+
+  .contact-item:last-child { border-bottom: none; }
+
+  .contact-icon {
+    width: 32px; height: 32px;
+    background: var(--cream);
+    border: 1px solid var(--rule);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.8rem;
+    flex-shrink: 0;
+    color: var(--accent);
+  }
+
+  .contact-item a {
+    color: inherit;
+    text-decoration: none;
+    transition: color 0.2s;
+    word-break: break-all;
+  }
+
+  .contact-item a:hover { color: var(--accent); }
+
+  /* ── SECTIONS ── */
+  section {
+    padding: 6rem 4rem;
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 1.5rem;
+    margin-bottom: 4rem;
+  }
+
+  .section-number {
+    font-family: 'Playfair Display', serif;
+    font-size: 0.72rem;
+    color: var(--accent);
+    letter-spacing: 0.2em;
+    font-style: italic;
+    white-space: nowrap;
+  }
+
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.8rem, 3vw, 3rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+
+  .section-rule {
+    flex: 1;
+    height: 1px;
+    background: var(--rule);
+    margin-bottom: 0.4rem;
+    min-width: 20px;
+  }
+
+  /* ── SKILLS (dark) ── */
+  .skills-section {
+    background: var(--ink);
+    padding: 6rem 4rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .skills-section .section-title { color: var(--cream); }
+  .skills-section .section-number { color: var(--accent-light); }
+  .skills-section .section-rule { background: rgba(255,255,255,0.12); }
+
+  .skills-section-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+
+  .skills-bg-text {
+    position: absolute;
+    bottom: -1.5rem;
+    left: -1rem;
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(5rem, 14vw, 14rem);
+    font-weight: 900;
+    color: transparent;
+    -webkit-text-stroke: 1px rgba(255,255,255,0.05);
+    pointer-events: none;
+    user-select: none;
+    line-height: 1;
+  }
+
+  .skills-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .skill-item {
+    background: var(--ink);
+    padding: 1.75rem;
+    transition: background 0.2s;
+    position: relative;
+    overflow: hidden;
+    opacity: 0;
+    transform: translateY(16px);
+    transition: background 0.2s, opacity 0.5s ease, transform 0.5s ease;
+  }
+
+  .skill-item.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .skill-item:hover { background: #221C17; }
+
+  .skill-item::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px; height: 0;
+    background: var(--accent);
+    transition: height 0.35s ease;
+  }
+
+  .skill-item:hover::before { height: 100%; }
+
+  .skill-label {
+    font-size: 0.68rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.3);
+    margin-bottom: 0.6rem;
+  }
+
+  .skill-name {
+    color: var(--cream);
+    font-size: 0.93rem;
+    font-weight: 400;
+    line-height: 1.5;
+  }
+
+  /* ── EXPERIENCE ── */
+  .experience-list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .exp-item {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 3rem;
+    padding: 3rem 0;
+    border-top: 1px solid var(--rule);
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+
+  .exp-item.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .exp-item:last-child {
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .exp-meta { padding-top: 0.25rem; }
+
+  .exp-period {
+    font-size: 0.7rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.5rem;
+  }
+
+  .exp-company {
+    font-weight: 500;
+    font-size: 0.85rem;
+    color: var(--warm-mid);
+    line-height: 1.5;
+  }
+
+  .exp-type {
+    display: inline-block;
+    margin-top: 0.5rem;
+    font-size: 0.65rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    border: 1px solid var(--accent-light);
+    padding: 0.2rem 0.6rem;
+  }
+
+  .exp-role {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.45rem;
+    font-weight: 700;
+    margin-bottom: 1.25rem;
+    letter-spacing: -0.01em;
+    line-height: 1.3;
+  }
+
+  .exp-bullets {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+  }
+
+  .exp-bullets li {
+    font-size: 0.92rem;
+    color: var(--warm-mid);
+    padding-left: 1.3rem;
+    position: relative;
+    line-height: 1.7;
+  }
+
+  .exp-bullets li::before {
+    content: '—';
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+    font-size: 0.7rem;
+    top: 0.35rem;
+  }
+
+  /* ── TOOLS ── */
+  .tools-section {
+    background: var(--paper);
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .tools-categories {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 2.5rem;
+  }
+
+  .tool-category-label {
+    font-size: 0.68rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .tool-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+  }
+
+  .tool-tag {
+    font-size: 0.78rem;
+    padding: 0.38rem 0.8rem;
+    background: var(--cream);
+    border: 1px solid var(--rule);
+    color: var(--warm-mid);
+    transition: all 0.2s;
+    cursor: default;
+  }
+
+  .tool-tag:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(196,135,74,0.06);
+  }
+
+  /* ── EDUCATION ── */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5rem;
+  }
+
+  .edu-item {
+    padding: 2rem;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--accent);
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+
+  .edu-item.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .edu-degree {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin-bottom: 0.4rem;
+    line-height: 1.35;
+  }
+
+  .edu-school { font-size: 0.85rem; color: var(--warm-mid); }
+
+  .edu-year {
+    font-size: 0.68rem;
+    letter-spacing: 0.16em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-top: 0.75rem;
+  }
+
+  .cert-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+  }
+
+  .cert-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1.25rem;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    transition: border-color 0.2s, transform 0.2s;
+    opacity: 0;
+    transform: translateX(20px);
+  }
+
+  .cert-item.visible {
+    opacity: 1;
+    transform: translateX(0);
+    transition: opacity 0.6s ease, transform 0.6s ease, border-color 0.2s;
+  }
+
+  .cert-item:hover { border-color: var(--accent); }
+
+  .cert-icon {
+    width: 36px; height: 36px;
+    background: var(--cream);
+    border: 1px solid var(--rule);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--accent);
+    font-size: 0.85rem;
+    flex-shrink: 0;
+  }
+
+  .cert-name { font-size: 0.88rem; font-weight: 500; color: var(--ink); line-height: 1.4; }
+  .cert-org { font-size: 0.76rem; color: var(--warm-mid); margin-top: 0.2rem; }
+
+  /* ── AVAILABILITY STRIP ── */
+  .avail-strip {
+    background: var(--ink);
+    padding: 0.85rem 4rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+    flex-wrap: wrap;
+  }
+
+  .avail-strip p {
+    font-size: 0.75rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.45);
+  }
+
+  .avail-strip strong { color: var(--accent-light); font-weight: 400; }
+
+  .avail-cta {
+    display: inline-block;
+    font-size: 0.72rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--cream);
+    border: 1px solid rgba(255,255,255,0.2);
+    padding: 0.55rem 1.4rem;
+    text-decoration: none;
+    transition: all 0.25s;
+    white-space: nowrap;
+  }
+
+  .avail-cta:hover {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--ink);
+    color: rgba(255,255,255,0.35);
+    text-align: center;
+    padding: 3rem 2rem;
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+
+  footer span { color: var(--accent); }
+
+  footer .footer-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    color: rgba(255,255,255,0.12);
+    letter-spacing: 0.08em;
+    display: block;
+    margin-bottom: 1.5rem;
+  }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(28px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  /* ── DIVIDER ── */
+  .ornament {
+    text-align: center;
+    color: var(--rule);
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    letter-spacing: 0.5em;
+    padding: 1rem;
+  }
+
+  /* ── REVEAL ── */
+  .reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.65s ease, transform 0.65s ease;
+  }
+
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 1000px) {
+    nav { padding: 1rem 1.5rem; }
+    .nav-links { display: none; }
+    .hamburger { display: flex; }
+
+    .hero {
+      grid-template-columns: 1fr;
+      padding: 7rem 1.5rem 3rem;
+      text-align: center;
+      gap: 3rem;
+    }
+
+    .hero-stats { justify-content: center; }
+    .hero-desc { max-width: 100%; }
+    .hero-ctas { justify-content: center; flex-wrap: wrap; }
+    .hero-right { justify-content: center; }
+    .hero-card { width: 100%; max-width: 380px; }
+    .hero-bg-text { display: none; }
+    .hero::after { display: none; }
+
+    section { padding: 4rem 1.5rem; }
+    .skills-section { padding: 4rem 1.5rem; }
+    .tools-section section { padding: 4rem 1.5rem; }
+    .avail-strip { padding: 1rem 1.5rem; }
+
+    .exp-item { grid-template-columns: 1fr; gap: 0.75rem; }
+
+    .two-col { grid-template-columns: 1fr; gap: 2.5rem; }
+  }
+
+  @media (max-width: 480px) {
+    .hero-name { font-size: clamp(2.5rem, 12vw, 3.5rem); }
+    .hero-stats { gap: 1.5rem; }
+    .btn-primary, .btn-outline { padding: 0.85rem 1.5rem; font-size: 0.7rem; }
+  }
+</style>
+</head>
+<body>
+
+<div id="scroll-bar"></div>
+
+<!-- NAV -->
+<nav id="main-nav">
+  <a class="nav-logo" href="#about">RC <span></span></a>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#experience">Experience</a></li>
+    <li><a href="#tools">Tools</a></li>
+    <li><a href="#education">Education</a></li>
+    <li class="nav-cta"><a href="mailto:ronzamielcastillo28@gmail.com">Hire Me</a></li>
+  </ul>
+  <button class="hamburger" id="hamburger" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<div class="mobile-menu" id="mobile-menu">
+  <a href="#about" class="mobile-link">About</a>
+  <a href="#experience" class="mobile-link">Experience</a>
+  <a href="#tools" class="mobile-link">Tools</a>
+  <a href="#education" class="mobile-link">Education</a>
+  <a href="mailto:ronzamielcastillo28@gmail.com">Hire Me →</a>
+</div>
+
+<!-- HERO -->
+<div class="hero" id="about">
+  <div class="hero-bg-text" id="hero-bg">VA</div>
+
+  <div class="hero-left">
+    <div class="hero-tag">Available for remote work</div>
+    <h1 class="hero-name">Ronzamiel<br><em>Castillo</em></h1>
+    <p class="hero-title">General Administrative Virtual Assistant</p>
+    <p class="hero-desc">Detail-oriented VA with 3+ years of experience in administrative support, coordination, and documentation — keeping operations smooth, organised, and reliably on time.</p>
+
+    <div class="hero-stats">
+      <div>
+        <div class="stat-val">3<em>+</em></div>
+        <div class="stat-label">Years Experience</div>
+      </div>
+      <div>
+        <div class="stat-val">2<em>+</em></div>
+        <div class="stat-label">Companies Served</div>
+      </div>
+      <div>
+        <div class="stat-val">10<em>+</em></div>
+        <div class="stat-label">Tools Mastered</div>
+      </div>
+    </div>
+
+    <div class="hero-ctas">
+      <a href="mailto:ronzamielcastillo28@gmail.com" class="btn-primary">Get in Touch</a>
+      <a href="#experience" class="btn-outline">View Experience</a>
+    </div>
+  </div>
+
+  <div class="hero-right">
+    <div class="hero-card">
+      <div class="card-heading">Contact Details</div>
+      <div class="contact-item">
+        <div class="contact-icon">✉</div>
+        <a href="mailto:ronzamielcastillo28@gmail.com">ronzamielcastillo28@gmail.com</a>
+      </div>
+      <div class="contact-item">
+        <div class="contact-icon">☎</div>
+        <a href="tel:+639272844552">+63 927 284 4552</a>
+      </div>
+      <div class="contact-item">
+        <div class="contact-icon">◎</div>
+        <span>Malabon City, Philippines</span>
+      </div>
+      <div class="contact-item">
+        <div class="contact-icon">↗</div>
+        <span>Open to Remote Roles</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SKILLS -->
+<div class="skills-section">
+  <div class="skills-bg-text">Skills</div>
+  <div class="skills-section-inner">
+    <div class="section-header">
+      <span class="section-number">01 —</span>
+      <h2 class="section-title">Core Skills</h2>
+      <div class="section-rule"></div>
+    </div>
+    <div class="skills-grid">
+      <div class="skill-item">
+        <div class="skill-label">Operations</div>
+        <div class="skill-name">Administrative Support</div>
+      </div>
+      <div class="skill-item">
+        <div class="skill-label">Scheduling</div>
+        <div class="skill-name">Calendar & Inbox Management</div>
+      </div>
+      <div class="skill-item">
+        <div class="skill-label">Records</div>
+        <div class="skill-name">Data Entry & File Organisation</div>
+      </div>
+      <div class="skill-item">
+        <div class="skill-label">Comms</div>
+        <div class="skill-name">Email Correspondence</div>
+      </div>
+      <div class="skill-item">
+        <div class="skill-label">Output</div>
+        <div class="skill-name">Document Preparation</div>
+      </div>
+      <div class="skill-item">
+        <div class="skill-label">Workflow</div>
+        <div class="skill-name">Task Coordination</div>
+      </div>
+      <div class="skill-item">
+        <div class="skill-label">Platforms</div>
+        <div class="skill-name">Google Workspace & Microsoft 365</div>
+      </div>
+      <div class="skill-item">
+        <div class="skill-label">Systems</div>
+        <div class="skill-name">CRM Management</div>
+      </div>
+      <div class="skill-item">
+        <div class="skill-label">Mindset</div>
+        <div class="skill-name">Time Management & Attention to Detail</div>
+      </div>
+      <div class="skill-item">
+        <div class="skill-label">Creative</div>
+        <div class="skill-name">Canva & AI Tools</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- EXPERIENCE -->
+<section id="experience">
+  <div class="section-header">
+    <span class="section-number">02 —</span>
+    <h2 class="section-title">Professional Experience</h2>
+    <div class="section-rule"></div>
+  </div>
+
+  <div class="experience-list">
+    <div class="exp-item">
+      <div class="exp-meta">
+        <div class="exp-period">2024 – 2026</div>
+        <div class="exp-company">PSG Global Solutions</div>
+        <div><span class="exp-type">Most Recent</span></div>
+      </div>
+      <div class="exp-body">
+        <h3 class="exp-role">Administrative & Recruitment Support Specialist</h3>
+        <ul class="exp-bullets">
+          <li>Managed calendars and scheduled interviews and meetings across multiple stakeholders</li>
+          <li>Maintained accurate records in applicant tracking and internal databases</li>
+          <li>Coordinated onboarding processes, including document collection and verification</li>
+          <li>Handled email communication with candidates and internal teams</li>
+          <li>Ensured organised documentation and compliance with company processes</li>
+          <li>Supported recruiters and managers with day-to-day administrative tasks</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="exp-item">
+      <div class="exp-meta">
+        <div class="exp-period">2022 – 2024</div>
+        <div class="exp-company">PSG Global Solutions</div>
+      </div>
+      <div class="exp-body">
+        <h3 class="exp-role">Administrative Coordinator</h3>
+        <ul class="exp-bullets">
+          <li>Provided administrative support including scheduling, data entry, and file management</li>
+          <li>Managed candidate communications and maintained organised records</li>
+          <li>Updated tracking systems and ensured data accuracy</li>
+          <li>Assisted in preparing documents and onboarding requirements</li>
+          <li>Coordinated tasks to support smooth daily operations</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="exp-item">
+      <div class="exp-meta">
+        <div class="exp-period">2021 – 2022</div>
+        <div class="exp-company">VXI Global Solutions</div>
+      </div>
+      <div class="exp-body">
+        <h3 class="exp-role">Customer Support Associate</h3>
+        <ul class="exp-bullets">
+          <li>Managed customer inquiries via phone and email with professionalism</li>
+          <li>Maintained accurate records of interactions and account updates</li>
+          <li>Resolved issues efficiently while handling high-volume workloads</li>
+          <li>Demonstrated strong communication and problem-solving skills</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TOOLS -->
+<div class="tools-section" id="tools">
+  <section style="background: transparent;">
+    <div class="section-header">
+      <span class="section-number">03 —</span>
+      <h2 class="section-title">Tools & Technology</h2>
+      <div class="section-rule"></div>
+    </div>
+
+    <div class="tools-categories">
+      <div class="reveal">
+        <div class="tool-category-label">Productivity & Communication</div>
+        <div class="tool-tags">
+          <span class="tool-tag">Google Workspace</span>
+          <span class="tool-tag">Microsoft 365</span>
+          <span class="tool-tag">Slack</span>
+          <span class="tool-tag">Zoom</span>
+          <span class="tool-tag">Google Meet</span>
+        </div>
+      </div>
+      <div class="reveal">
+        <div class="tool-category-label">CRM & Marketing Systems</div>
+        <div class="tool-tags">
+          <span class="tool-tag">HubSpot</span>
+          <span class="tool-tag">Mailchimp</span>
+          <span class="tool-tag">GoHighLevel</span>
+        </div>
+      </div>
+      <div class="reveal">
+        <div class="tool-category-label">Project Management</div>
+        <div class="tool-tags">
+          <span class="tool-tag">Asana</span>
+          <span class="tool-tag">Trello</span>
+          <span class="tool-tag">ClickUp</span>
+          <span class="tool-tag">Monday.com</span>
+        </div>
+      </div>
+      <div class="reveal">
+        <div class="tool-category-label">Design & Content</div>
+        <div class="tool-tags">
+          <span class="tool-tag">Canva</span>
+          <span class="tool-tag">CapCut</span>
+          <span class="tool-tag">Adobe Express</span>
+        </div>
+      </div>
+      <div class="reveal">
+        <div class="tool-category-label">AI Tools</div>
+        <div class="tool-tags">
+          <span class="tool-tag">ChatGPT</span>
+          <span class="tool-tag">Grammarly</span>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- EDUCATION & CERTS -->
+<section id="education">
+  <div class="section-header">
+    <span class="section-number">04 —</span>
+    <h2 class="section-title">Education & Certifications</h2>
+    <div class="section-rule"></div>
+  </div>
+
+  <div class="two-col">
+    <div>
+      <h3 style="font-size:0.68rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--warm-mid);margin-bottom:1.5rem;">Academic</h3>
+      <div class="edu-item">
+        <div class="edu-degree">Bachelor of Science in Business Administration and Accountancy</div>
+        <div class="edu-school">City of Malabon University</div>
+        <div class="edu-year">Class of 2022</div>
+      </div>
+    </div>
+
+    <div>
+      <h3 style="font-size:0.68rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--warm-mid);margin-bottom:1.5rem;">Certifications</h3>
+      <div class="cert-list">
+        <div class="cert-item">
+          <div class="cert-icon">✦</div>
+          <div>
+            <div class="cert-name">Virtual Assistant Fundamentals</div>
+            <div class="cert-org">Coursera · 2026</div>
+          </div>
+        </div>
+        <div class="cert-item">
+          <div class="cert-icon">✦</div>
+          <div>
+            <div class="cert-name">Google Workspace</div>
+            <div class="cert-org">HubSpot Academy · 2026</div>
+          </div>
+        </div>
+        <div class="cert-item">
+          <div class="cert-icon">✦</div>
+          <div>
+            <div class="cert-name">The Social Armi</div>
+            <div class="cert-org">Certificate of Completion · 2026</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- AVAILABILITY STRIP -->
+<div class="avail-strip">
+  <p>Currently <strong>available</strong> for remote VA roles — let's work together.</p>
+  <a href="mailto:ronzamielcastillo28@gmail.com" class="avail-cta">Send a Message →</a>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <span class="footer-name">Ronzamiel Castillo</span>
+  <p>Malabon City, Philippines &nbsp;·&nbsp; <span>Available for Remote Work</span></p>
+  <p style="margin-top:0.5rem;">ronzamielcastillo28@gmail.com &nbsp;·&nbsp; +63 927 284 4552</p>
+  <p style="margin-top:1.5rem;font-size:0.62rem;letter-spacing:0.1em;opacity:0.5;">© 2026 Ronzamiel Castillo · All rights reserved</p>
+</footer>
+
+<script>
+  // ── SCROLL PROGRESS ──
+  const bar = document.getElementById('scroll-bar');
+  const nav = document.getElementById('main-nav');
+
+  window.addEventListener('scroll', () => {
+    const scrolled = window.scrollY;
+    const total = document.documentElement.scrollHeight - window.innerHeight;
+    bar.style.width = (scrolled / total * 100) + '%';
+    nav.classList.toggle('scrolled', scrolled > 30);
+  }, { passive: true });
+
+  // ── PARALLAX HERO TEXT ──
+  const heroBg = document.getElementById('hero-bg');
+  window.addEventListener('scroll', () => {
+    if (heroBg && window.innerWidth > 1000) {
+      heroBg.style.transform = `translateY(calc(-50% + ${window.scrollY * 0.18}px))`;
+    }
+  }, { passive: true });
+
+  // ── HAMBURGER ──
+  const ham = document.getElementById('hamburger');
+  const mob = document.getElementById('mobile-menu');
+
+  ham.addEventListener('click', () => {
+    ham.classList.toggle('open');
+    mob.classList.toggle('open');
+  });
+
+  document.querySelectorAll('.mobile-link').forEach(link => {
+    link.addEventListener('click', () => {
+      ham.classList.remove('open');
+      mob.classList.remove('open');
+    });
+  });
+
+  // ── INTERSECTION OBSERVER ──
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) {
+        const delay = e.target.dataset.delay || 0;
+        setTimeout(() => e.target.classList.add('visible'), delay);
+        io.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.12 });
+
+  // Skills
+  document.querySelectorAll('.skill-item').forEach((el, i) => {
+    el.dataset.delay = i * 60;
+    io.observe(el);
+  });
+
+  // Experience items
+  document.querySelectorAll('.exp-item').forEach((el, i) => {
+    el.dataset.delay = i * 100;
+    io.observe(el);
+  });
+
+  // Education & certs
+  document.querySelectorAll('.edu-item, .cert-item, .reveal').forEach((el, i) => {
+    el.dataset.delay = i * 80;
+    io.observe(el);
+  });
+</script>
+</body>
+</html>
